@@ -29,5 +29,8 @@ func (ss *Stack[T]) Pop(对象 *T) error {
 	*对象 = ret.data
 	return nil
 }
+func (ss *Stack[T]) IsEmpty() bool {
+	return ss.top == nil
+}
 
 var errEmpty = errors.New("Stack is empty")
