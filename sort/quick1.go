@@ -66,25 +66,21 @@ func run(ary Array, taskCount int, result chan *dataWrap) error {
 	pach := make(chan *param, 0)
 	resultch := make(chan *dataWrap, 0)
 
-	thr := make(chan int, taskCount)
 	errch := make(chan error, 0)
 	go func() {
+		thr := make(chan int, taskCount)
 		for {
-			pa, ok := <-pach // block by receive parameters
-			if ok {
-				go func() {
-					thr <- 1 // occupy
-					piovit, err := partitionArray(ary, pa.left, pa.right)
-					if err != nil {
-						errch <- err
-					}
-					resultch <- &dataWrap{left: pa.left, right: pa.right, pivot: piovit}
-					<-thr // release
-				}()
+			pa := <-pach // block by receive parameters
+			go func() {
+				thr <- 1 // occupy 1 thread
+				piovit, err := partitionArray(ary, pa.left, pa.right)
+				if err != nil {
+					errch <- err
+				}
+				resultch <- &dataWrap{left: pa.left, right: pa.right, pivot: piovit}
+				<-thr // release
+			}()
 
-			} else {
-				break
-			}
 		}
 	}()
 	size, err := ary.Len()
