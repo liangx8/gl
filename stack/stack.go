@@ -17,8 +17,9 @@ func New[T any]() *Stack[T] {
 }
 func CreateFromArray[T any](ary []T) *Stack[T] {
 	st := &Stack[T]{nil}
-	for _, da := range ary {
-		n := &node[T]{data: da, next: st.top}
+	size := len(ary)
+	for ix := size - 1; ix >= 0; ix-- {
+		n := &node[T]{data: ary[ix], next: st.top}
 		st.top = n
 	}
 	return st

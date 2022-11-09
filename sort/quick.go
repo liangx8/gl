@@ -5,76 +5,51 @@ import (
 )
 
 type (
-	Status struct {
-		Left, Right int64
+	scope struct {
+		Left  int64 `json:"left"`
+		Right int64 `json:"right"`
+	}
+	Progress interface {
+		Run() error
+		Break() error
+	}
+	progressImpl struct {
+		StackArray []scope `json:"stack"`
+		Target     string  `json:"database"`
 	}
 )
 
-func partitionNum[T int32 | int64 | uint32 | uint64](ary ArrayNum[T], left, right int64) (int64, error) {
-	pivotValue, err := ary.Get(right - 1)
-	if err != nil {
-		return 0, err
-	}
+func NewProgress(ary Array) (Progress, error) {
+	return nil, nil
+}
+func partitionArray(ary Array, left, right int64) (int64, error) {
 	storeIndex := left
-	for i := left; i < right-1; i++ {
-		idata, err := ary.Get(i)
+	pivotIndex := right - 1
+	for idx := left; idx < right-1; idx++ {
+		less, err := ary.Less(idx, pivotIndex)
 		if err != nil {
 			return 0, err
 		}
-		if idata.Id() < pivotValue.Id() {
-			// swap
+		if less {
 			tmpIdx := storeIndex
 			storeIndex++
-			if i == tmpIdx {
+			if idx == tmpIdx {
 				continue
 			}
-			storeValue, err := ary.Get(tmpIdx)
-			if err != nil {
+			if err = ary.Swap(tmpIdx, idx); err != nil {
 				return 0, err
 			}
-			if err := ary.Set(tmpIdx, idata); err != nil {
-				return 0, err
-			}
-			if err := ary.Set(i, storeValue); err != nil {
-				return 0, err
-			}
+
 		}
 	}
-	storeValue, err := ary.Get(storeIndex)
-	if err != nil {
-		return 0, err
-	}
-	if err := ary.Set(right-1, storeValue); err != nil {
-		return 0, err
-	}
-	if err := ary.Set(storeIndex, pivotValue); err != nil {
-		return 0, err
-	}
+	ary.Swap(storeIndex, right-1)
 	return storeIndex, nil
-
 }
-
-func quickSort[T int32 | int64 | uint32 | uint64](ary ArrayNum[T], left, right int64) error {
-	if left < right {
-
-		pivotIndex, err := partitionNum(ary, left, right)
-		if err != nil {
-			return err
-		}
-		if err = quickSort(ary, left, pivotIndex); err != nil {
-			return err
-		}
-		if err = quickSort(ary, pivotIndex+1, right); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-func QuickNotRecur[T int32 | int64 | uint32 | uint64](ary ArrayNum[T]) error {
-	sta := stack.New[*Status]()
-	st := &Status{Left: 0}
+func SortArray(ary Array) error {
+	sta := stack.New[*scope]()
+	st := &scope{Left: 0}
 	var err error
-	if st.Right, err = ary.Size(); err != nil {
+	if st.Right, err = ary.Len(); err != nil {
 		return err
 	}
 	sta.Push(st)
@@ -82,23 +57,20 @@ func QuickNotRecur[T int32 | int64 | uint32 | uint64](ary ArrayNum[T]) error {
 		if err = sta.Pop(&st); err != nil {
 			return err
 		}
-		pivotIndex, err := partitionNum(ary, st.Left, st.Right)
+		pivotIndex, err := partitionArray(ary, st.Left, st.Right)
 		if err != nil {
 			return err
 		}
 		if st.Left < pivotIndex {
-			sta.Push(&Status{Left: st.Left, Right: pivotIndex})
+			sta.Push(&scope{Left: st.Left, Right: pivotIndex})
 		}
 		if pivotIndex+1 < st.Right {
-			sta.Push(&Status{Left: pivotIndex + 1, Right: st.Right})
+			sta.Push(&scope{Left: pivotIndex + 1, Right: st.Right})
 		}
 	}
 	return nil
 }
-func Sort[T int32 | int64 | uint32 | uint64](ary ArrayNum[T]) error {
-	end, err := ary.Size()
-	if err != nil {
-		return err
-	}
-	return quickSort(ary, 0, end)
+
+func MultTaskSort(ary Array, taskCount int) error {
+	panic("not implements")
 }
