@@ -1,20 +1,27 @@
+// Disk IO is one of critical issues for sorting a big database
+// algorithm reference: https://en.wikipedia.org/wiki/Quicksort
+
 package quick
 
-import "github.com/liangx8/gl/stack"
+import (
+	"github.com/liangx8/gl/stack"
+)
 
 type (
 	scope struct {
 		Left  int64 `json:"left"`
 		Right int64 `json:"right"`
 	}
-	ArrayDao interface {
+	// maintain value of Pivot and Store, both of twe are reused by quick sort
+	ArrayIO interface {
 		LessPivot(idx int64) (bool, error)
 		Store(idx int64) error
 		SwapStore(idx int64) error
 		SwapStorePivot() error
 	}
+	//
 	Array interface {
-		Part(pivotIndex int64) (ArrayDao, error)
+		Part(pivotIndex int64) (ArrayIO, error)
 		Len() (int64, error)
 	}
 )
@@ -34,8 +41,11 @@ func partition(ary Array, left, right int64) (int64, error) {
 			return 0, err
 		}
 		if less {
-			if err = part.SwapStore(idx); err != nil {
-				return 0, err
+			if idx != storeIdx {
+				if err = part.SwapStore(idx); err != nil {
+					return 0, err
+				}
+
 			}
 			storeIdx++
 			if err = part.Store(storeIdx); err != nil {

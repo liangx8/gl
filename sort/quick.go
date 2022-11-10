@@ -9,19 +9,8 @@ type (
 		Left  int64 `json:"left"`
 		Right int64 `json:"right"`
 	}
-	Progress interface {
-		Run() error
-		Break() error
-	}
-	progressImpl struct {
-		StackArray []scope `json:"stack"`
-		Target     string  `json:"database"`
-	}
 )
 
-func NewProgress(ary Array) (Progress, error) {
-	return nil, nil
-}
 func partitionArray(ary Array, left, right int64) (int64, error) {
 	storeIndex := left
 	pivotIndex := right - 1
@@ -45,6 +34,8 @@ func partitionArray(ary Array, left, right int64) (int64, error) {
 	ary.Swap(storeIndex, right-1)
 	return storeIndex, nil
 }
+
+// SortArray quick sort array what implement interface Array
 func SortArray(ary Array) error {
 	sta := stack.New[*scope]()
 	st := &scope{Left: 0}
@@ -69,8 +60,4 @@ func SortArray(ary Array) error {
 		}
 	}
 	return nil
-}
-
-func MultTaskSort(ary Array, taskCount int) error {
-	panic("not implements")
 }
