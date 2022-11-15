@@ -9,59 +9,46 @@ import (
 )
 
 type (
-	aryImpl struct {
-		data []int
-	}
-	daoImpl struct {
-		ary          *aryImpl
-		store, pivot int64
-	}
+	cmpImpl int
+	aryImpl []quick.Comparable
 )
 
-func (ary *aryImpl) Part(pivotIndex int64) (quick.ArrayIO, error) {
-	dao := &daoImpl{ary: ary, pivot: pivotIndex}
-	return dao, nil
+func (cmp cmpImpl) Compare(c quick.Comparable) int {
+	return int(cmp - c.(cmpImpl))
 }
-func (ary *aryImpl) Len() (int64, error) {
-	return int64(len(ary.data)), nil
-}
-func (ary *aryImpl) String() string {
-	return fmt.Sprintf("%v", ary.data)
+func (cmp cmpImpl) String() string {
+	return fmt.Sprint(int(cmp))
 }
 
-func (dao *daoImpl) LessPivot(idx int64) (bool, error) {
-
-	return dao.ary.data[idx] < dao.ary.data[dao.pivot], nil
-}
-
-func (dao *daoImpl) Store(idx int64) error {
-	dao.store = idx
-	return nil
-}
-func (dao *daoImpl) SwapStore(idx int64) error {
-	dao.ary.data[idx], dao.ary.data[dao.store] = dao.ary.data[dao.store], dao.ary.data[idx]
-	return nil
-}
-func (dao *daoImpl) SwapStorePivot() error {
-	dao.ary.data[dao.pivot], dao.ary.data[dao.store] = dao.ary.data[dao.store], dao.ary.data[dao.pivot]
+func (ary aryImpl) Set(idx int64, com quick.Comparable) error {
+	ary[idx] = com
 	return nil
 }
 
-func createTestAry(cnt int) *aryImpl {
-	ar := &aryImpl{data: make([]int, cnt)}
+func (ary aryImpl) Load(idx int64) (quick.Comparable, error) {
+	return ary[idx], nil
+}
+func (ary aryImpl) Len() (int64, error) {
+	return int64(len(ary)), nil
+}
+
+func createTestAry(cnt int) aryImpl {
+	ar := aryImpl(make([]quick.Comparable, cnt))
 	for ix := 0; ix < cnt; ix++ {
-		ar.data[ix] = rand.Int()
+		ar[ix] = cmpImpl(rand.Int() % 100)
 	}
 	return ar
 }
 
-const num = 10000
+const num = 10
 
 func TestSortArray(t *testing.T) {
 	ary := createTestAry(num)
+	t.Log(ary)
 	quick.Sort(ary)
+	t.Log(ary)
 	for ix := int64(0); ix < num-1; ix++ {
-		if ary.data[ix] > ary.data[ix+1] {
+		if ary[ix].Compare(ary[ix+1]) > 0 {
 			t.Fail()
 		}
 	}

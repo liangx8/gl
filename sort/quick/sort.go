@@ -12,49 +12,55 @@ type (
 		Left  int64 `json:"left"`
 		Right int64 `json:"right"`
 	}
-	// maintain value of Pivot and Store, both of twe are reused by quick sort
-	ArrayIO interface {
-		LessPivot(idx int64) (bool, error)
-		Store(idx int64) error
-		SwapStore(idx int64) error
-		SwapStorePivot() error
+	Comparable interface {
+		Compare(Comparable) int
 	}
 	//
 	Array interface {
-		Part(pivotIndex int64) (ArrayIO, error)
 		Len() (int64, error)
+		Load(idx int64) (Comparable, error)
+		Set(idx int64, com Comparable) error
 	}
 )
 
 func partition(ary Array, left, right int64) (int64, error) {
-	part, err := ary.Part(right - 1)
+	pivotIdx := right - 1
+	pivot, err := ary.Load(pivotIdx)
 	if err != nil {
 		return 0, err
 	}
 	storeIdx := left
-	if err = part.Store(left); err != nil {
+	store, err := ary.Load(storeIdx)
+	if err != nil {
 		return 0, err
 	}
 	for idx := left; idx < right-1; idx++ {
-		less, err := part.LessPivot(idx)
+
+		cur, err := ary.Load(idx)
 		if err != nil {
 			return 0, err
 		}
-		if less {
+		if cur.Compare(pivot) < 0 {
 			if idx != storeIdx {
-				if err = part.SwapStore(idx); err != nil {
+				if err = ary.Set(idx, store); err != nil {
+					return 0, err
+				}
+				if err = ary.Set(storeIdx, cur); err != nil {
 					return 0, err
 				}
 
 			}
 			storeIdx++
-			if err = part.Store(storeIdx); err != nil {
+			if store, err = ary.Load(storeIdx); err != nil {
 				return 0, err
 			}
 		}
 
 	}
-	if err = part.SwapStorePivot(); err != nil {
+	if err = ary.Set(storeIdx, pivot); err != nil {
+		return 0, err
+	}
+	if err = ary.Set(pivotIdx, store); err != nil {
 		return 0, err
 	}
 	return storeIdx, nil
