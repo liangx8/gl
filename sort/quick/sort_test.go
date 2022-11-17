@@ -35,18 +35,16 @@ func (ary aryImpl) Len() (int64, error) {
 func createTestAry(cnt int) aryImpl {
 	ar := aryImpl(make([]quick.Comparable, cnt))
 	for ix := 0; ix < cnt; ix++ {
-		ar[ix] = cmpImpl(rand.Int() % 100)
+		ar[ix] = cmpImpl(rand.Int())
 	}
 	return ar
 }
 
-const num = 10
+const num = 10000
 
 func TestSortArray(t *testing.T) {
 	ary := createTestAry(num)
-	t.Log(ary)
 	quick.Sort(ary)
-	t.Log(ary)
 	for ix := int64(0); ix < num-1; ix++ {
 		if ary[ix].Compare(ary[ix+1]) > 0 {
 			t.Fail()
