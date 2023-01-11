@@ -43,7 +43,7 @@ func TestBubbleSort(t *testing.T) {
 	}
 }
 func TestQuickSort(t *testing.T) {
-	const max int64 = 20000
+	const max int64 = 90000
 	ary := createArray(max)
 	quick.Sort(ary)
 	if !sort.Order(ary) {
@@ -62,6 +62,7 @@ func BenchmarkBubbleSort(b *testing.B) {
 
 }
 func BenchmarkQuickSort(b *testing.B) {
+	// BenchmarkQuickSort-4   	       1	1504717145 ns/op	 5689328 B/op	    1878 allocs/op
 	const max int64 = 180000
 	ary := createArray(max)
 	b.ResetTimer()
