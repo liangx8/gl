@@ -5,10 +5,8 @@ package parallel
 // Run represents a number of functions running concurrently.
 type (
 	Run struct {
-		work       chan int
-		res        chan<- error
-		Errs       <-chan error
-		atomicUint uint32
+		work   chan int
+		jobcnt int32
 	}
 )
 
@@ -19,26 +17,18 @@ func NewRun(max int) *Run {
 	if max < 1 {
 		panic("parameter max must be >= 1")
 	}
-	result := make(chan error)
 	return &Run{
-		work:       make(chan int, max),
-		res:        result,
-		Errs:       result,
-		atomicUint: 0,
+		work: make(chan int, max),
 	}
 }
 
 // Do requests that r run f concurrently.  If there are already the maximum
 // number of functions running concurrently, it will block until one of them
 // has completed.
-func (r *Run) Do(f func() error) {
-	r.atomicUint++
+func (r *Run) Do(f func()) {
 	r.work <- 1
-	go func(fn func() error, res chan<- error) {
-		if err := fn(); err != nil {
-			res <- err
-		}
+	go func(fn func()) {
+		fn()
 		<-r.work
-		r.atomicUint--
-	}(f, r.res)
+	}(f)
 }

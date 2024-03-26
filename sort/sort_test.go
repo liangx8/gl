@@ -29,7 +29,7 @@ func (ea eleAry) Len() int64 {
 func createArray(size int64) sort.Array {
 	ia := make([]int, size)
 	for idx := range ia {
-		ia[idx] = rand.Int() % 100
+		ia[idx] = rand.Int()
 	}
 	return eleAry(ia)
 }
@@ -43,7 +43,7 @@ func TestBubbleSort(t *testing.T) {
 	}
 }
 func TestQuickSort(t *testing.T) {
-	const max int64 = 90000
+	const max int64 = 190000
 	ary := createArray(max)
 	quick.Sort(ary)
 	if !sort.Order(ary) {
@@ -53,7 +53,7 @@ func TestQuickSort(t *testing.T) {
 }
 
 func BenchmarkBubbleSort(b *testing.B) {
-	const max int64 = 1000
+	const max int64 = 2000
 	ary := createArray(max)
 	b.ResetTimer()
 	for t := 0; t < b.N; t++ {
@@ -63,7 +63,7 @@ func BenchmarkBubbleSort(b *testing.B) {
 }
 func BenchmarkQuickSort(b *testing.B) {
 	// BenchmarkQuickSort-4   	       1	1504717145 ns/op	 5689328 B/op	    1878 allocs/op
-	const max int64 = 180000
+	const max int64 = 190000
 	ary := createArray(max)
 	b.ResetTimer()
 	for t := 0; t < b.N; t++ {

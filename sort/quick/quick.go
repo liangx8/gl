@@ -31,29 +31,22 @@ func partition(ary sort.Array, scope [2]int64) int64 {
 	ary.Set(right, store)
 	return storeIndex
 }
-func sort3(ary sort.Array, start int64) {
-	v1 := ary.Get(start)
-	v2 := ary.Get(start + 1)
-	v3 := ary.Get(start + 2)
-	if v1.Compare(v2) > 0 {
-		if v1.Compare(v3) > 0 {
-			ary.Set(start+2, v1)
-			if v2.Compare(v3) > 0 {
-				ary.Set(start, v3)
-				ary.Set(start+1, v2)
-			} else {
-				ary.Set(start, v2)
-				ary.Set(start+1, v3)
-
+func sort3(ary sort.Array, start int64, size int64) {
+	swapped := true
+	top := start + size - 1
+	for swapped {
+		swapped = false
+		for idx := start; idx < top; idx++ {
+			v1 := ary.Get(idx)
+			v2 := ary.Get(idx + 1)
+			if v1.Compare(v2) > 0 {
+				ary.Set(idx, v2)
+				ary.Set(idx+1, v1)
+				swapped = true
 			}
-		} else {
-			ary.Set(start, v2)
-			ary.Set(start+1, v1)
-			ary.Set(start+2, v3)
 		}
-		return
+		top = top - 1
 	}
-	// TODO: else
 }
 func Sort(ary sort.Array) {
 	qu := container.NewFifo[[2]int64]()
@@ -61,7 +54,8 @@ func Sort(ary sort.Array) {
 	for qu.Len() > 0 {
 		scope := qu.Out()
 		idx := partition(ary, scope)
-		switch idx - scope[0] {
+		wd := idx - scope[0]
+		switch wd {
 		case 0, 1:
 		case 2:
 			v1 := ary.Get(scope[0])
@@ -70,12 +64,15 @@ func Sort(ary sort.Array) {
 				ary.Set(scope[0], v2)
 				ary.Set(idx-1, v1)
 			}
-		case 3:
-			sort3(ary, scope[0])
 		default:
-			qu.In([2]int64{scope[0], idx})
+			if wd < 10 {
+				sort3(ary, scope[0], wd)
+			} else {
+				qu.In([2]int64{scope[0], idx})
+			}
 		}
-		switch scope[1] - idx - 1 {
+		wd = scope[1] - idx - 1
+		switch wd {
 		case 0, 1:
 		case 2:
 			v1 := ary.Get(idx + 1)
@@ -84,10 +81,12 @@ func Sort(ary sort.Array) {
 				ary.Set(idx+1, v2)
 				ary.Set(scope[1]-1, v1)
 			}
-		case 3:
-			sort3(ary, idx+1)
 		default:
-			qu.In([2]int64{idx + 1, scope[1]})
+			if wd < 10 {
+				sort3(ary, idx+1, wd)
+			} else {
+				qu.In([2]int64{idx + 1, scope[1]})
+			}
 		}
 	}
 
